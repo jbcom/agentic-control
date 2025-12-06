@@ -8,16 +8,16 @@
  * All configuration is user-provided - no hardcoded values.
  */
 
-import { Command, Option, InvalidArgumentError } from 'commander';
+import { Command, InvalidArgumentError, Option } from 'commander';
 import { spawnSync } from 'node:child_process';
-import { writeFileSync, existsSync } from 'node:fs';
-import { Fleet } from './fleet/index.js';
-import { AIAnalyzer } from './triage/index.js';
-import { HandoffManager } from './handoff/index.js';
-import { getTokenSummary, validateTokens, getConfiguredOrgs, extractOrg } from './core/tokens.js';
-import { initConfig, getDefaultModel, getConfig, getFleetDefaults } from './core/config.js';
+import { existsSync, writeFileSync } from 'node:fs';
+import { getConfig, getDefaultModel, getFleetDefaults, initConfig } from './core/config.js';
+import { extractOrg, getConfiguredOrgs, getTokenSummary, validateTokens } from './core/tokens.js';
 import type { Agent } from './core/types.js';
+import { Fleet } from './fleet/index.js';
+import { HandoffManager } from './handoff/index.js';
 import { VERSION } from './index.js';
+import { AIAnalyzer } from './triage/index.js';
 
 const program = new Command();
 
@@ -816,6 +816,139 @@ triageCmd
             }
         } catch (err) {
             console.error('❌ Analysis failed:', err instanceof Error ? err.message : err);
+            process.exit(1);
+        }
+    });
+
+// ============================================
+// Crew Commands
+// ============================================
+
+const crewCmd = program.command('crews').description('Crew tool operations');
+
+crewCmd
+    .command('list')
+    .description('List all available crews')
+    .option('--json', 'Output as JSON')
+    .action(async (opts) => {
+        try {
+            const { CrewTool } = await import('./crews/crew-tool.js');
+            const { getCrewsConfig } = await import('./core/config.js');
+            
+            const crewsConfig = getCrewsConfig();
+            if (!crewsConfig) {
+                console.error('❌ Crew tool not configured. Add crews section to agentic.config.json');
+                process.exit(1);
+            }
+
+            const crewTool = new CrewTool(crewsConfig);
+            const crews = await crewTool.listCrews();
+
+            if (opts.json) {
+                output(crews, true);
+            } else {
+                console.log('=== Available Crews ===\n');
+                console.log(`${'PACKAGE'.padEnd(20)} ${'CREW'.padEnd(25)} DESCRIPTION`);
+                console.log('-'.repeat(100));
+                for (const crew of crews) {
+                    const pkg = crew.package.padEnd(20);
+                    const name = crew.name.padEnd(25);
+                    const desc = crew.description.slice(0, 50);
+                    console.log(`${pkg} ${name} ${desc}`);
+                }
+                console.log(`\nTotal: ${crews.length} crews`);
+            }
+        } catch (err) {
+            console.error('❌ Failed to list crews:', err instanceof Error ? err.message : err);
+            process.exit(1);
+        }
+    });
+
+crewCmd
+    .command('info')
+    .description('Get information about a specific crew')
+    .argument('<package>', 'Package name')
+    .argument('<crew>', 'Crew name')
+    .option('--json', 'Output as JSON')
+    .action(async (pkg, crew, opts) => {
+        try {
+            const { CrewTool } = await import('./crews/crew-tool.js');
+            const { getCrewsConfig } = await import('./core/config.js');
+            
+            const crewsConfig = getCrewsConfig();
+            if (!crewsConfig) {
+                console.error('❌ Crew tool not configured. Add crews section to agentic.config.json');
+                process.exit(1);
+            }
+
+            const crewTool = new CrewTool(crewsConfig);
+            const info = await crewTool.getCrewInfo(pkg, crew);
+
+            if (opts.json) {
+                output(info, true);
+            } else {
+                console.log('=== Crew Information ===\n');
+                console.log(`Package:     ${info.package}`);
+                console.log(`Crew:        ${info.name}`);
+                console.log(`Description: ${info.description}`);
+            }
+        } catch (err) {
+            console.error('❌ Failed to get crew info:', err instanceof Error ? err.message : err);
+            process.exit(1);
+        }
+    });
+
+crewCmd
+    .command('run')
+    .description('Run a crew with input')
+    .argument('<package>', 'Package name')
+    .argument('<crew>', 'Crew name')
+    .requiredOption('-i, --input <input>', 'Input for the crew')
+    .option('--timeout <ms>', 'Timeout in milliseconds')
+    .option('--json', 'Output as JSON')
+    .action(async (pkg, crew, opts) => {
+        try {
+            const { CrewTool } = await import('./crews/crew-tool.js');
+            const { getCrewsConfig } = await import('./core/config.js');
+            
+            const crewsConfig = getCrewsConfig();
+            if (!crewsConfig) {
+                console.error('❌ Crew tool not configured. Add crews section to agentic.config.json');
+                process.exit(1);
+            }
+
+            const crewTool = new CrewTool(crewsConfig);
+            
+            console.log(`🚀 Running crew ${pkg}.${crew}...`);
+            
+            const result = await crewTool.invokeCrew({
+                package: pkg,
+                crew,
+                input: opts.input,
+                timeout: opts.timeout ? parseInt(opts.timeout, 10) : undefined,
+            });
+
+            if (opts.json) {
+                output(result, true);
+            } else {
+                if (result.success) {
+                    console.log('\n✅ Crew execution successful\n');
+                    console.log('Output:');
+                    console.log(result.output);
+                    console.log(`\nDuration: ${result.duration}ms`);
+                } else {
+                    console.error('\n❌ Crew execution failed\n');
+                    console.error('Error:');
+                    console.error(result.error);
+                    if (result.exitCode) {
+                        console.error(`Exit code: ${result.exitCode}`);
+                    }
+                    console.error(`Duration: ${result.duration}ms`);
+                    process.exit(1);
+                }
+            }
+        } catch (err) {
+            console.error('❌ Failed to run crew:', err instanceof Error ? err.message : err);
             process.exit(1);
         }
     });

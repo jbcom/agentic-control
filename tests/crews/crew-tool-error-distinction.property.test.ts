@@ -55,14 +55,18 @@ describe('CrewTool Error Type Distinction Properties', () => {
         async (invalidName) => {
           const crewTool = new CrewTool();
 
-          // Invalid package/crew names should throw validation errors
-          await expect(
-            crewTool.invokeCrew({
-              package: invalidName,
-              crew: 'valid-crew',
-              input: 'test',
-            })
-          ).rejects.toThrow();
+          // Invalid package/crew names should return validation errors
+          const result = await crewTool.invokeCrew({
+            package: invalidName,
+            crew: 'valid-crew',
+            input: 'test',
+          });
+
+          // Should fail with validation error
+          expect(result.success).toBe(false);
+          expect(result.error).toBeDefined();
+          // Error message contains validation details from Zod
+          expect(result.error?.toLowerCase()).toMatch(/invalid|format|alphanumeric/);
         }
       ),
       { numRuns: 20 }
