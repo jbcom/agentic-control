@@ -92,11 +92,12 @@
     "@ai-sdk/anthropic": "^2.0.53",
     "@types/node": "^24.10.1",
     "@vitest/coverage-v8": "^4.0.14",
-    "tsx": "4.21.0",
-    "typescript": "^5.7.0",
-    "vitest": "^4.0.14",
+    "eslint": "^8.56.0",
     "prettier": "^3.2.0",
-    "eslint": "^8.56.0"
+    "tsx": "4.21.0",
+    "typedoc": "^0.28.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.14"
   },
   "engines": {
     "node": ">=20.0.0"
