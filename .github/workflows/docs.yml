@@ -36,7 +36,7 @@ jobs:
 
       # Install TypeDoc for TypeScript documentation
       - name: Install TypeDoc
-        run: npm install typedoc@0.28
+        run: npm ci
 
       # Set up Python with uv
       - name: Setup Python
