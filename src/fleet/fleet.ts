@@ -26,6 +26,7 @@ import type {
     Result,
     SpawnOptions,
 } from '../core/types.js';
+import type { CrewTool } from '../crews/crew-tool.js';
 import { GitHubClient } from '../github/client.js';
 import { CursorAPI, type CursorAPIOptions } from './cursor-api.js';
 
@@ -66,7 +67,7 @@ export class Fleet {
     private api: CursorAPI | null;
     private archivePath: string;
     private useDirectApi: boolean;
-    private crewTool: any | null = null;
+    private crewTool: CrewTool | null = null;
     private crewToolInitialized = false;
     private crewToolInitPromise: Promise<void> | null = null;
 
@@ -111,8 +112,9 @@ export class Fleet {
                 } else {
                     this.crewTool = null;
                 }
-            } catch {
+            } catch (error) {
                 // Crew tool not available
+                log.warn('Failed to initialize CrewTool. Crew-related features will be disabled.', error);
                 this.crewTool = null;
             } finally {
                 // Only set initialized flag after async work completes

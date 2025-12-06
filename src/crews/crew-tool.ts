@@ -33,6 +33,11 @@ export class CrewToolError extends Error {
 }
 
 /**
+ * Grace period before sending SIGKILL after SIGTERM (in milliseconds)
+ */
+const SIGKILL_GRACE_PERIOD_MS = 5000;
+
+/**
  * Crew tool for invoking Python crew-agents from TypeScript
  * 
  * @example Standalone usage
@@ -246,15 +251,20 @@ export class CrewTool {
       const timeout = options?.timeout ?? this.config.defaultTimeout;
       const env = { ...process.env, ...this.config.env, ...options?.env };
 
+      // Build command arguments based on executable
+      // uv uses: uv run crew-agents <args>
+      // python/python3 use: python -m crew_agents <args>
+      const executable = this.config.pythonExecutable;
+      const isUv = executable === 'uv' || executable.endsWith('/uv') || executable.endsWith('\\uv');
+      const commandArgs = isUv
+        ? ['run', 'crew-agents', ...args]
+        : ['-m', 'crew_agents', ...args];
+
       // Spawn subprocess
-      const proc = spawn(
-        this.config.pythonExecutable,
-        ['run', 'crew-agents', ...args],
-        {
-          cwd: this.config.crewAgentsPath,
-          env,
-        }
-      );
+      const proc = spawn(executable, commandArgs, {
+        cwd: this.config.crewAgentsPath,
+        env,
+      });
 
       let stdout = '';
       let stderr = '';
@@ -265,12 +275,12 @@ export class CrewTool {
         killed = true;
         proc.kill('SIGTERM');
         
-        // Force kill after 5 seconds
+        // Force kill after grace period
         setTimeout(() => {
           if (!proc.killed) {
             proc.kill('SIGKILL');
           }
-        }, 5000);
+        }, SIGKILL_GRACE_PERIOD_MS);
       }, timeout);
 
       // Collect output

@@ -17,6 +17,8 @@ import {
     type ModelFactory,
     type ProviderOptions,
 } from '../core/providers.js';
+import type { CrewResult } from '../crews/types.js';
+import type { CrewTool } from '../crews/crew-tool.js';
 import { getEnvForPRReview } from '../core/tokens.js';
 import type {
     AnalysisResult,
@@ -202,8 +204,9 @@ export class Analyzer {
                 const { CrewTool } = await import('../crews/crew-tool.js');
                 this.crewTool = new CrewTool(crewsConfig);
             }
-        } catch {
+        } catch (error) {
             // Crew tool not available
+            log.warn('Failed to initialize CrewTool. Crew delegation will be unavailable.', error);
             this.crewTool = null;
         }
     }
@@ -215,7 +218,7 @@ export class Analyzer {
         packageName: string,
         crewName: string,
         input: string
-    ): Promise<any> {
+    ): Promise<CrewResult> {
         await this.initCrewTool();
 
         if (!this.crewTool) {
