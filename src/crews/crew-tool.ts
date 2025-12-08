@@ -206,6 +206,12 @@ export class CrewTool {
 
     /**
      * Execute an agentic-crew CLI command
+     * 
+     * Security notes:
+     * - Uses spawn() with argument array (no shell interpretation)
+     * - Package/crew names are validated via Zod regex: /^[a-zA-Z0-9_-]+$/
+     * - Input strings are passed as single array elements (not shell-interpolated)
+     * - No shell=true option is used, preventing command injection
      */
     private async executeCommand(
         args: string[],
@@ -216,12 +222,15 @@ export class CrewTool {
             const env = { ...process.env, ...this.config.env, ...options?.env };
 
             // Build command based on invoke method
+            // Note: spawn() with array args is safe from command injection
+            // because arguments are passed directly to the executable without shell interpretation
             const executable = this.config.invokeMethod === 'uv' ? 'uv' : 'agentic-crew';
             const commandArgs = this.config.invokeMethod === 'uv'
                 ? ['run', 'agentic-crew', ...args]
                 : args;
 
-            const proc = spawn(executable, commandArgs, { env });
+            // spawn with shell:false (default) prevents command injection
+            const proc = spawn(executable, commandArgs, { env, shell: false });
 
             let stdout = '';
             let stderr = '';
@@ -246,13 +255,24 @@ export class CrewTool {
                 stderr += data.toString();
             });
 
-            proc.on('exit', (code) => {
+            proc.on('exit', (code, signal) => {
                 clearTimeout(timeoutHandle);
 
                 if (killed) {
                     resolve({
                         success: false,
                         error: `Crew execution timed out after ${timeout}ms`,
+                        output: stdout.trim(),
+                        exitCode: code ?? 1,
+                    });
+                    return;
+                }
+
+                // Handle signal-based termination
+                if (signal) {
+                    resolve({
+                        success: false,
+                        error: `Process terminated by signal: ${signal}`,
                         output: stdout.trim(),
                         exitCode: code ?? 1,
                     });
@@ -273,6 +293,11 @@ export class CrewTool {
                         exitCode: code ?? 1,
                     });
                 }
+            });
+
+            // Handle close event for complete cleanup
+            proc.on('close', () => {
+                clearTimeout(timeoutHandle);
             });
 
             proc.on('error', (error) => {
