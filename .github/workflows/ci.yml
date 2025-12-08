@@ -82,7 +82,7 @@ jobs:
         run: pnpm install
 
       - name: Check formatting
-        run: pnpm run format:check || true  # Don't fail on format issues
+        run: pnpm run format:check
 
   release-node:
     name: Release (npm)

@@ -1,6 +1,6 @@
 /**
  * Type definitions for agentic-crew CLI integration
- * 
+ *
  * These types match the JSON output from agentic-crew CLI commands.
  */
 
@@ -84,8 +84,20 @@ export const CrewToolConfigSchema = z.object({
  * Zod schema for InvokeCrewOptions validation
  */
 export const InvokeCrewOptionsSchema = z.object({
-    package: z.string().min(1).regex(/^[a-zA-Z0-9_-]+$/, 'Package name must be alphanumeric with hyphens or underscores'),
-    crew: z.string().min(1).regex(/^[a-zA-Z0-9_-]+$/, 'Crew name must be alphanumeric with hyphens or underscores'),
+    package: z
+        .string()
+        .min(1)
+        .regex(
+            /^[a-zA-Z0-9_.-]+$/,
+            'Package name must be alphanumeric and may include hyphens, underscores, or dots'
+        ),
+    crew: z
+        .string()
+        .min(1)
+        .regex(
+            /^[a-zA-Z0-9_.-]+$/,
+            'Crew name must be alphanumeric and may include hyphens, underscores, or dots'
+        ),
     input: z.string(),
     timeout: z.number().positive().optional(),
     env: z.record(z.string(), z.string()).optional(),
