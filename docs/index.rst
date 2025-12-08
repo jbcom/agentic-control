@@ -1,10 +1,11 @@
-.. agentic-control documentation master file
+.. PACKAGE_NAME documentation master file
+   Synced from jbcom-control-center - customize for your project
 
-===========================================
-agentic-control Documentation
-===========================================
+=======================================
+PACKAGE_NAME Documentation
+=======================================
 
-Unified AI agent fleet management, triage, and orchestration toolkit for control centers.
+.. TODO: Add your project description here
 
 .. toctree::
    :maxdepth: 2
@@ -15,30 +16,15 @@ Unified AI agent fleet management, triage, and orchestration toolkit for control
 
 .. toctree::
    :maxdepth: 2
-   :caption: TypeScript Core
+   :caption: API Reference
 
-   api/typescript/index
-   api/typescript/fleet
-   api/typescript/triage
-   api/typescript/github
-   api/typescript/handoff
-   api/typescript/core
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Python CrewAI
-
-   api/python/index
-   api/python/crews
-   api/python/flows
-   api/python/tools
+   api/index
 
 .. toctree::
    :maxdepth: 1
    :caption: Development
 
    development/contributing
-   development/architecture
 
 
 Indices and tables
