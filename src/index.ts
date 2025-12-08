@@ -33,6 +33,9 @@ export { HandoffManager, type TakeoverOptions } from './handoff/index.js';
 export { ContainerManager, SandboxExecutor } from './sandbox/index.js';
 export type { ContainerConfig, ContainerResult, SandboxOptions } from './sandbox/index.js';
 
+// Crew tool (agentic-crew CLI integration)
+export * from './crews/index.js';
+
 // Version - read from package.json at runtime
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
