@@ -7,10 +7,8 @@ FROM python-base AS final
 # Install Node.js from node-base
 COPY --from=node-base /usr/local/bin/node /usr/local/bin/
 COPY --from=node-base /usr/local/lib/node_modules /usr/local/lib/node_modules
-COPY --from=node-base /usr/local/bin/npm /usr/local/bin/
-COPY --from=node-base /usr/local/bin/npx /usr/local/bin/
 
-# Create symlinks for node
+# Create symlinks for npm and npx
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
     ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
