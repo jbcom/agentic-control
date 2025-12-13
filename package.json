@@ -74,7 +74,7 @@
     "@ai-sdk/google": "^2.0.44",
     "@ai-sdk/mistral": "^2.0.25",
     "@ai-sdk/openai": "^2.0.76",
-    "ai-sdk-ollama": "^0.9.0"
+    "ai-sdk-ollama": "^1.1.0"
   },
   "peerDependenciesMeta": {
     "@ai-sdk/anthropic": {
@@ -150,6 +150,6 @@
     "@ai-sdk/google": "^2.0.44",
     "@ai-sdk/mistral": "^2.0.25",
     "@ai-sdk/openai": "^2.0.76",
-    "ai-sdk-ollama": "^0.9.0"
+    "ai-sdk-ollama": "^1.1.0"
   }
 }
