@@ -66,7 +66,7 @@ RUN pip install --user --no-cache-dir "agentic-crew[crewai]"
 # - GitHub Actions Marketplace workflows
 # - Multi-architecture Docker builds (linux/amd64, linux/arm64)
 # - Local Docker image execution with global CLI access
-RUN pnpm setup
+RUN pnpm setup && echo "pnpm setup completed successfully"
 ENV PNPM_HOME="/home/agent/.local/share/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
